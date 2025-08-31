@@ -51,7 +51,7 @@ def is_runtime_by_pattern(function_name):
 def get_functions(program):
     ## A list to hold all functions inside the current program.
     all_functions = []
-    ## A list to hold functions to be excluded in analysis.
+    ## A list to hold functions excluded from analysis.
     excluded_functions = set()
     ## A list to hold functions to be included in analysis.
     included_functions = set()
@@ -139,6 +139,18 @@ def export_separate(functions, output_dir, parent_dir):
             file.write(function[1])
     
     print(f"\n{SUCCESS}[+]{RESET} Decompiled code exported successfully into {output_dir}.")
+
+    return None
+
+def export_single(functions, output_dir, output_file):
+    file_name = os.path.splitext(output_file)[0]
+    c_file_name = os.path.join(output_dir, f"{file_name}.c")
+
+    with open(c_file_name, "a") as file:
+        for function in functions:
+            file.write(function[1] + "\n\n")
+
+    print(f"\n{SUCCESS}[+]{RESET} Decompiled code written successfully to {output_dir}.")
 
     return None
 
