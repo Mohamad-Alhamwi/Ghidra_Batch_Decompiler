@@ -17,6 +17,7 @@ def parse_args():
     parser.add_argument("mode", choices = ["single", "separate"], help = "Export mode: 'single' for one file, 'separate' for separate files.")
     parser.add_argument("binary", help = "Path to the binary files to analyze.")
     parser.add_argument("output", help = "Directory to export the decompiled results.")
+    parser.add_argument("--verbose", action = "store_true", help = "Enable detailed per-binary output.")
 
     return parser.parse_args()
 
@@ -34,7 +35,7 @@ def get_binaries(path):
     
     return bins_list
 
-def run_headless(mode, bins, output_dir):
+def run_headless(mode, bins, output_dir, verbose):
     errors = []
 
     try:
@@ -56,7 +57,8 @@ def run_headless(mode, bins, output_dir):
                 "-deleteProject"
             ]
 
-            print(f"{INFORMATION}[*] {bin['name']}{RESET} is being processed ...")
+            if verbose:
+                print(f"{INFORMATION}[*] {bin['name']}{RESET} is being processed ...")
 
             ## Fire up analyzeHeadless.
             ps = subprocess.run(cmd, capture_output = True, text = True)
@@ -71,8 +73,9 @@ def run_headless(mode, bins, output_dir):
                 print(f"{WARNING}[!]{RESET} Something went wrong when analyzing {bin['name']}")
 
                 errors.append(error_info)
-
-            print(f"{SUCCESS}[+] {bin['name']}{RESET} was processed successfully.")
+            
+            if verbose:
+                print(f"{SUCCESS}[+] {bin['name']}{RESET} was processed successfully.")
     
     except KeyboardInterrupt:
         print(f"\n{WARNING}[!]{RESET} CTRL+C detected!")
@@ -95,7 +98,7 @@ def main(args):
     bins = get_binaries(args.binary)
 
     print(f"{INFORMATION}[*]{RESET} Analyses started ...")
-    run_headless(args.mode, bins, args.output)
+    run_headless(args.mode, bins, args.output, args.verbose)
     print(f"{INFORMATION}[*]{RESET} Analyses finished.")
 
 if __name__ == "__main__":
