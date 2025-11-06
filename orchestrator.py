@@ -35,11 +35,28 @@ def get_binaries(path):
     
     return bins_list
 
+def is_previously_processed(bin_name, output_dir):
+    ## Define the expected output path.
+    bin_name = os.path.splitext(bin_name)[0]
+    output_file = os.path.join(output_dir, bin_name + ".c")
+    
+    # 2️ Check if it exists.
+    if os.path.exists(output_file):
+        return True
+
+    return False
+
 def run_headless(mode, bins, output_dir, verbose):
     errors = []
 
     try:
         for bin in bins:
+            ## First check: skip previously processed binaries.
+            if is_previously_processed(bin["name"], output_dir):
+                if verbose:
+                    print(f"{WARNING}[!] {bin['name']}{RESET} skipped (already processed).")
+                continue
+
             ## Set up the required parameters for Ghidra's headless.
             project_directory = f"/home/remnux/Desktop/Final_Experement/SAST_On_SRE_Final/Test_Ground_Ghidra_Projects/" ## Change me!
             project_name = f"{bin['name']}" ## Change me!
