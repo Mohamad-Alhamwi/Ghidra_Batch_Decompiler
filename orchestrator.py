@@ -40,8 +40,19 @@ def is_previously_processed(bin_name, output_dir):
     bin_name = os.path.splitext(bin_name)[0]
     output_file = os.path.join(output_dir, bin_name + ".c")
     
-    # 2️ Check if it exists.
+    ## Check if it exists.
     if os.path.exists(output_file):
+        return True
+
+    return False
+
+def is_being_processed(bin_name, output_dir):
+    ## Define the expected output path.
+    bin_name = os.path.splitext(bin_name)[0]
+    lock_file = os.path.join(output_dir, bin_name + ".lock")
+    
+    ## Check if it exists.
+    if os.path.exists(lock_file):
         return True
 
     return False
@@ -55,6 +66,12 @@ def run_headless(mode, bins, output_dir, verbose):
             if is_previously_processed(bin["name"], output_dir):
                 if verbose:
                     print(f"{WARNING}[!] {bin['name']}{RESET} skipped (already processed).")
+                continue
+            
+            ## Second check: skip if currently being processed.
+            if is_being_processed(bin["name"], output_dir):
+                if verbose:
+                    print(f"{WARNING}[!] {bin['name']}{RESET} is already being processed — skipping ...")
                 continue
 
             ## Set up the required parameters for Ghidra's headless.
