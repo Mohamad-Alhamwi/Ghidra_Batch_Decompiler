@@ -61,6 +61,14 @@ def claim(bin_name, output_dir):
     except FileExistsError:
         return False
 
+def release(bin_name, output_dir):
+    ## Define the expected output path.
+    bin_name = os.path.splitext(bin_name)[0]
+    lock_file = os.path.join(output_dir, bin_name + ".lock")
+    
+    if os.path.exists(lock_file):
+        os.remove(lock_file)
+
 def run_headless(mode, bins, output_dir, verbose):
     errors = []
 
@@ -78,7 +86,7 @@ def run_headless(mode, bins, output_dir, verbose):
                     print(f"{WARNING}[!] {bin['name']}{RESET} is already being processed — skipping ...")
                 continue
 
-            ## Set up the required parameters for Ghidra's headless.
+            ## Safely set up the required parameters for Ghidra's headless.
             project_directory = f"/home/remnux/Desktop/Final_Experement/SAST_On_SRE_Final/Test_Ground_Ghidra_Projects/" ## Change me!
             project_name = f"{bin['name']}" ## Change me!
 
@@ -126,6 +134,8 @@ def run_headless(mode, bins, output_dir, verbose):
             with open("./error_log.txt", "w") as error_log:
                 for error in errors:
                     error_log.write(f"{error}\n")
+        
+        release(bin["name"], output_dir)
 
 def main(args):
     print(f"{INFORMATION}[*]{RESET} Mode selected: {args.mode}.")
