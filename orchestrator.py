@@ -46,16 +46,20 @@ def is_previously_processed(bin_name, output_dir):
 
     return False
 
-def is_claimed(bin_name, output_dir):
+def claim(bin_name, output_dir):
     ## Define the expected output path.
     bin_name = os.path.splitext(bin_name)[0]
     lock_file = os.path.join(output_dir, bin_name + ".lock")
-    
-    ## Check if it exists.
-    if os.path.exists(lock_file):
+
+    try:
+        ## Fails if file already exists.
+        with open(lock_file, "x") as lf:
+            lf.write("LOCKED\n")
+
         return True
 
-    return False
+    except FileExistsError:
+        return False
 
 def run_headless(mode, bins, output_dir, verbose):
     errors = []
@@ -69,7 +73,7 @@ def run_headless(mode, bins, output_dir, verbose):
                 continue
             
             ## Second check: skip if currently being processed.
-            if is_claimed(bin["name"], output_dir):
+            if not claim(bin["name"], output_dir):
                 if verbose:
                     print(f"{WARNING}[!] {bin['name']}{RESET} is already being processed — skipping ...")
                 continue
