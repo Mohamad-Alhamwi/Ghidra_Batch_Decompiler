@@ -86,42 +86,50 @@ def run_headless(mode, bins, output_dir, verbose):
                     print(f"{WARNING}[!] {bin['name']}{RESET} is already being processed — skipping ...")
                 continue
 
-            ## Safely set up the required parameters for Ghidra's headless.
-            project_directory = f"/home/remnux/Desktop/Final_Experement/SAST_On_SRE_Final/Test_Ground_Ghidra_Projects/" ## Change me!
-            project_name = f"{bin['name']}" ## Change me!
+            try:
+                ## Safely set up the required parameters for Ghidra's headless.
+                project_directory = f"/home/remnux/Desktop/Final_Experement/SAST_On_SRE_Final/Test_Ground_Ghidra_Projects/" ## Change me!
+                project_name = f"{bin['name']}" ## Change me!
 
-            ## Command to run.
-            cmd = [
-                "analyzeHeadless",
-                project_directory,
-                project_name,
-                "-import", bin["path"],
-                "-scriptPath", ".", ## Change me if you move decompiler.py
-                "-postScript", "decompiler.py", mode, output_dir, bin['name'],
-                "-recursive",
-                "-overwrite",
-                "-deleteProject"
-            ]
+                ## Command to run.
+                cmd = [
+                    "analyzeHeadless",
+                    project_directory,
+                    project_name,
+                    "-import", bin["path"],
+                    "-scriptPath", ".", ## Change me if you move decompiler.py
+                    "-postScript", "decompiler.py", mode, output_dir, bin['name'],
+                    "-recursive",
+                    "-overwrite",
+                    "-deleteProject"
+                ]
 
-            if verbose:
-                print(f"{INFORMATION}[*] {bin['name']}{RESET} is being processed ...")
+                if verbose:
+                    print(f"{INFORMATION}[*] {bin['name']}{RESET} is being processed ...")
 
-            ## Fire up analyzeHeadless.
-            ps = subprocess.run(cmd, capture_output = True, text = True)
+                ## Fire up analyzeHeadless.
+                ps = subprocess.run(cmd, capture_output = True, text = True)
 
-            if ps.returncode:
-                error_info = {
-                    "path": bin["path"],
-                    "code": ps.returncode,
-                    "stderr": ps.stderr
-                }
+                if ps.returncode:
+                    error_info = {
+                        "path": bin["path"],
+                        "code": ps.returncode,
+                        "stderr": ps.stderr
+                    }
 
-                print(f"{WARNING}[!]{RESET} Something went wrong when analyzing {bin['name']}")
+                    print(f"{WARNING}[!]{RESET} Something went wrong when analyzing {bin['name']}")
 
-                errors.append(error_info)
-            
-            if verbose:
-                print(f"{SUCCESS}[+] {bin['name']}{RESET} was processed successfully.")
+                    errors.append(error_info)
+                
+                else:
+                    if verbose:
+                        print(f"{SUCCESS}[+] {bin['name']}{RESET} was processed successfully.")
+
+            except Exception as e:
+                errors.append({"path": bin["path"], "stderr": str(e)})
+
+            finally:
+                release(bin["name"], output_dir)
     
     except KeyboardInterrupt:
         print(f"\n{WARNING}[!]{RESET} CTRL+C detected!")
@@ -134,8 +142,6 @@ def run_headless(mode, bins, output_dir, verbose):
             with open("./error_log.txt", "w") as error_log:
                 for error in errors:
                     error_log.write(f"{error}\n")
-        
-        release(bin["name"], output_dir)
 
 def main(args):
     print(f"{INFORMATION}[*]{RESET} Mode selected: {args.mode}.")
