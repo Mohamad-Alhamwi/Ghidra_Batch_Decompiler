@@ -118,6 +118,7 @@ def run_headless(mode, bins, output_dir, verbose):
                 ps = subprocess.run(cmd, capture_output = True, text = True)
 
                 if ps.returncode:
+                    ## TODO: Add to the error information the type of process that raised the error.
                     error_info = {
                         "timestamp": get_timestamp(),
                         "path": bin["path"],
