@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from datetime import datetime
 import subprocess
 import argparse
 import os
@@ -20,6 +21,12 @@ def parse_args():
     parser.add_argument("--verbose", action = "store_true", help = "Enable detailed per-binary output.")
 
     return parser.parse_args()
+
+def get_timestamp():
+    ## TODO: Fix the timezone.
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    return timestamp
 
 def get_binaries(path):
     bins_list = []
@@ -112,6 +119,7 @@ def run_headless(mode, bins, output_dir, verbose):
 
                 if ps.returncode:
                     error_info = {
+                        "timestamp": get_timestamp(),
                         "path": bin["path"],
                         "code": ps.returncode,
                         "stderr": ps.stderr
@@ -126,12 +134,13 @@ def run_headless(mode, bins, output_dir, verbose):
                         print(f"{SUCCESS}[+] {bin['name']}{RESET} was processed successfully.")
 
             except Exception as e:
-                errors.append({"path": bin["path"], "stderr": str(e)})
+                errors.append({"timestamp": get_timestamp(), "path": bin["path"], "stderr": str(e)})
 
             finally:
                 release(bin["name"], output_dir)
     
     except KeyboardInterrupt:
+        ## TODO: Handle accidental CTRL+C.
         print(f"\n{WARNING}[!]{RESET} CTRL+C detected!")
 
         if len(errors):
